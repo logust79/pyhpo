@@ -15,7 +15,6 @@ def main(args):
         {'name': 'is_a', 'index': False},
     ]
     cursor.execute('DROP TABLE IF EXISTS hpo')
-    PRIMARY KEY({','.join([i['name'] for i in columns if i['index']])})''')
     cursor.execute(f'''CREATE TABLE hpo({','.join([i['name'] + ' text' for i in columns])},
     PRIMARY KEY({','.join([i['name'] for i in columns if i['index']])}))''')
 
