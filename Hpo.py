@@ -15,15 +15,11 @@ class Hpo:
         if result is None:
             result = []
         cursor = self.conn.cursor()
-        # get header
-        sql = 'PRAGMA table_info(hpo)'
-        cursor.execute(sql)
-        header = [i[1] for i in cursor.fetchall()]
 
         # find record
         sql = 'SELECT * FROM hpo WHERE id = ?'
         cursor.execute(sql, (hpo_id,))
-        record = dict(zip(header, cursor.fetchone()))
+        record = dict(zip(self.table_header, cursor.fetchone()))
         if record['is_a']:
             ancestors = record['is_a'].split(';')
             result.extend(ancestors)
@@ -31,6 +27,19 @@ class Hpo:
                 return self.get_ancestors(anc, result)
         else:
             return result
+
+    @property
+    def table_header(self):
+        '''
+        get sqlite table header
+        '''
+        if hasattr(self, '_table_header', None) is None:
+            cursor = self.conn.cursor()
+            # get header
+            sql = 'PRAGMA table_info(hpo)'
+            cursor.execute(sql)
+            self._table_header = [i[1] for i in cursor.fetchall()]
+        return self._table_header
 
     def get_min_graph(self, hpo_list):
         '''
@@ -64,15 +73,12 @@ class Hpo:
           ]
         '''
         cursor = self.conn.cursor()
-        # get header
-        sql = 'PRAGMA table_info(hpo)'
-        cursor.execute(sql)
-        header = [i[1] for i in cursor.fetchall()]
+
         if (len(hpo_list) == 1):
             result = [{'id': hpo_list[0], 'is_a': None}]
             sql = 'SELECT * FROM hpo WHERE id = ?'
             cursor.execute(sql, (hpo_list[0],))
-            record = dict(zip(header, cursor.fetchone()))
+            record = dict(zip(self.table_header, cursor.fetchone()))
             if record['is_a']:
                 result[0]['is_a'] = record['is_a'].split(';')
                 for anc in result[0]['is_a']:
